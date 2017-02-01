@@ -50,7 +50,7 @@ app.controller("app", function ($scope) {
         },
         popover: {
             isshow: false,
-            text: "sadsadsadsad"
+            text: "Текст в окошке"
         }
     };
 

@@ -21,7 +21,7 @@ var projector, raycaster, directionVector;
  };
  */
 var sphere, marker, label, line1;
-var clock = new THREE.Clock();
+//var clock = new THREE.Clock();
 $(document).ready(function () {
     $(window).resize(function () {
         init();
@@ -81,7 +81,7 @@ function init() {
     camera.position.x = 0;
     camera.position.y = 20 / distance_param;
     // camera.position.y = 20;
-    camera.position.z = -1600;
+    camera.position.z = 1600;
 
     renderer.shadowMapEnabled = true;
     renderer.shadowMapSoft = false;
@@ -180,14 +180,14 @@ function draw_scene() {
 
 
         var material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, color: "#FFFE3C"});
-        material.depthWrite = false;
+        //material.depthWrite = false;
         sphere = new THREE.Mesh(new THREE.SphereGeometry(window.scene_params.sphere.radius, 20, 10), material);
-        sphere.position.set(0, 0, 0);
+        sphere.position.set(window.scene_params.sphere.position.x, window.scene_params.sphere.position.y, window.scene_params.sphere.position.z);
         scene.add(sphere);
 
         marker = new THREE.Mesh(new THREE.SphereGeometry(0.1), marker_material);
         var marker_material = new THREE.MeshLambertMaterial({color: 0xff0000, transparent: true, opacity: 1});
-        marker_material.depthWrite = false;
+       // marker_material.depthWrite = false;
         scene.add(marker);
 
 
@@ -203,19 +203,13 @@ function draw_scene() {
 
 }
 
-function draw_line() {
-    var line_material1 = new THREE.LineBasicMaterial({color: 0xff0000, opacity: 1.0});
-    line_material1.depthWrite = false;
-    var geometry1 = new THREE.Geometry();
-    geometry1.vertices.push(new THREE.Vector3(marker.position.x, marker.position.y, marker.position.z));
-    geometry1.vertices.push(new THREE.Vector3(label.position.x, label.position.y, label.position.z));
-    line1 = new THREE.Line(geometry1, line_material1);
-    scene.add(line1);
+/*function draw_line() {
 
-}
+
+}*/
 
 function meshClick(event) {
-    console.log("event", event);
+    //console.log("event", event);
     var x = ( event.offsetX / canvasWidth ) * 2 - 1;
     var y = -( event.offsetY / canvasHeight ) * 2 + 1;
     directionVector.set(x, y, 1);
@@ -223,9 +217,10 @@ function meshClick(event) {
     directionVector.sub(camera.position);
     directionVector.normalize();
     raycaster.set(camera.position, directionVector);
-    var intersects = raycaster.intersectObjects(scene.children, true);
-   // var intersects = raycaster.intersectObjects(sphere, true);
-    console.log("intersects", intersects);
+    //var intersects = raycaster.intersectObjects(scene.children, true);
+    var arr=[sphere];
+    var intersects = raycaster.intersectObjects(arr, true);
+   // console.log("intersects", intersects);
 
     if (intersects.length) {
         marker.position.x = intersects[0].point.x;
@@ -233,17 +228,26 @@ function meshClick(event) {
         marker.position.z = intersects[0].point.z;
 
         scene.remove(line1);
-
+        scene.remove(label);
 
         text = document.createElement('div');
         text.className = 'pop_up';
-        text.textContent = "asdasdasd";
+        text.textContent = window.scene_params.popover.text;
         label = new THREE.CSS2DObject(text);
-        label.position.set(10, 20, 0);
+
+        var h=window.scene_params.sphere.radius*3;
+        label.position.set(marker.position.x, marker.position.y+h, marker.position.z);
         scene.add(label);
 
 
-        draw_line();
+        var line_material1 = new THREE.LineBasicMaterial({color: 0xff0000, opacity: 1.0});
+       // line_material1.depthWrite = false;
+        var geometry1 = new THREE.Geometry();
+        geometry1.vertices.push(new THREE.Vector3(marker.position.x, marker.position.y, marker.position.z));
+        geometry1.vertices.push(new THREE.Vector3(label.position.x, label.position.y, label.position.z));
+        line1 = new THREE.Line(geometry1, line_material1);
+        scene.add(line1);
+
     }else{
         scene.remove(line1);
         scene.remove(label);

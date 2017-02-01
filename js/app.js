@@ -19,8 +19,8 @@ var clickInfo = {
     userHasClicked: false
 };
 */
-
-
+var marker;
+var clock = new THREE.Clock();
 $(document).ready(function () {
     $(window).resize(function () {
         init();
@@ -57,7 +57,7 @@ function init() {
 
 
     if (Detector.webgl){
-        renderer = new THREE.WebGLRenderer();
+        renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true});
     }else{
         renderer = new THREE.CanvasRenderer();
     }
@@ -77,10 +77,11 @@ function init() {
 
 
     //camera = new THREE.PerspectiveCamera(45, (canvasWidth / 5) / (canvasHeight / 5), 1, 15000);
-    camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 1, 15000);
-     camera.position.x = 0;
-     camera.position.y = 1500/ distance_param;
-     camera.position.z = -1600;
+    camera = new THREE.PerspectiveCamera(25, canvasWidth / canvasHeight);
+   //  camera.position.x = 0;
+     //camera.position.y = 10/ distance_param;
+     camera.position.y = 20;
+  //   camera.position.z = -1600;
 
     renderer.shadowMapEnabled = true;
     renderer.shadowMapSoft = false;
@@ -95,7 +96,7 @@ function init() {
 }
 
 function setControls(){
-    controls = new THREE.TrackballControls(camera, renderer.domElement);
+  /*  controls = new THREE.TrackballControls(camera, renderer.domElement);
     controls.target0.set(0, 0, 0);
     controls.up0.set(0, 0, -1);
     controls.reset();
@@ -107,7 +108,13 @@ function setControls(){
     controls.noPan = false;
     controls.staticMoving = true;
     controls.dynamicDampingFactor = 0.3;
-    controls.keys = [65, 83, 68];
+    controls.keys = [65, 83, 68];*/
+
+    controls = new THREE.FirstPersonControls(camera);
+    controls.constrainVertical = true;
+    controls.movementSpeed = 60;
+    controls.lookSpeed = 0.05;
+
 }
 
 function onDocumentMouseDown(event){
@@ -119,52 +126,66 @@ function getmousewheel(){
 }
 
 function animate(){
+    var delta = clock.getDelta();
     requestAnimationFrame(animate);
     deltax = spdx - mouseX;
     deltay = spdy - mouseY;
     spdx = (mouseX);
     spdy = (mouseY);
     //  $scope.meshBg.quaternion.copy($scope.camera.quaternion);
-    render();
-    controls.update();
+    render(delta);
+   // controls.update();
 }
 
-function render(){
+function render(delta){
+    controls.update(delta);
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);
+    camera.position.y = 20;
 }
 
 function draw_scene(){
     scene = new THREE.Scene();
 
-    var material = new THREE.MeshLambertMaterial( { side: THREE.DoubleSide } );
-    var mesh = new THREE.Mesh( new THREE.SphereGeometry( 700, 20, 10 ), material );
-    mesh.position.set( 0, 0, -700 );
+    scene.add(camera);
+
+    var material = new THREE.MeshLambertMaterial( { side: THREE.DoubleSide, color: 0xFFFE3C } );
+    var mesh = new THREE.Mesh( new THREE.SphereGeometry( 10, 20, 10 ), material );
+    mesh.position.set( 0, 0, 0 );
     scene.add( mesh );
   //  mesh.addEventListener( 'click',function(){meshClick()} , false );
 
 
 
     var pointLight2 = new THREE.PointLight(0xffffff);
-    pointLight2.position.set(3000, 1500, 300);
+    pointLight2.position.set(1, 1, 0.5);
     scene.add(pointLight2);
 
 
+    var ambientLight = new THREE.AmbientLight(0xffffff);
+    scene.add(ambientLight);
 
-    var plane = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000, 10, 10), new THREE.MeshBasicMaterial({ color: 0x808080, wireframe: true }));
-   // plane.rotation.x = -Math.PI / 2;
-    plane.position.set( 0, 0, 0 );
+
+    var plane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000, 10, 10), new THREE.MeshBasicMaterial({ color: 0x808080, wireframe: true }));
+    plane.rotation.x = -Math.PI / 2;
+    //plane.position.set( 0, 0, 0 );
     plane.name = 'Ground';
     scene.add(plane);
 
+
+    marker = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshLambertMaterial({ color: 0xff0000 }));
+    scene.add(marker);
 
 
     var text = document.createElement( 'div' );
     text.className = 'pop_up';
     text.textContent = "asdasdasd";
     var label = new THREE.CSS2DObject( text );
-    label.position.set( 1000, 0, 1000 );
+    label.position.set( 10, 10, 0 );
     scene.add( label );
+
+
+    
 }
 
 function meshClick(event){
@@ -181,8 +202,11 @@ function meshClick(event){
    //  var intersectedObjects = rayCaster.intersectObjects(scene.children, true);
    //  console.log("intersectedObjects", intersectedObjects);
 
-    var x = ( event.clientX / canvasWidth ) * 2 - 1;
-    var y = -( event.clientY / canvasHeight ) * 2 + 1;
+    // var x = ( event.clientX / canvasWidth ) * 2 - 1;
+    // var y = -( event.clientY / canvasHeight )  * 2 + 1;
+
+    var x = ( event.offsetX / canvasWidth ) * 2 - 1;
+    var y = -( event.offsetY / canvasHeight )  * 2 + 1;
     directionVector.set(x, y, 1);
     projector.unprojectVector(directionVector, camera);
     directionVector.sub(camera.position);
@@ -190,5 +214,11 @@ function meshClick(event){
     raycaster.set(camera.position, directionVector);
     var intersects = raycaster.intersectObjects(scene.children, true);
     console.log("intersects",intersects);
+
+    if (intersects.length) {
+        marker.position.x = intersects[0].point.x;
+        marker.position.y = intersects[0].point.y;
+        marker.position.z = intersects[0].point.z;
+    }
 }
 

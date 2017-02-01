@@ -19,7 +19,7 @@ var clickInfo = {
     userHasClicked: false
 };
 */
-var marker;
+var marker, label;
 var clock = new THREE.Clock();
 $(document).ready(function () {
     $(window).resize(function () {
@@ -57,7 +57,7 @@ function init() {
 
 
     if (Detector.webgl){
-        renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true});
+        renderer = new THREE.WebGLRenderer({antialias: false, preserveDrawingBuffer: true});
     }else{
         renderer = new THREE.CanvasRenderer();
     }
@@ -149,7 +149,8 @@ function draw_scene(){
 
     scene.add(camera);
 
-    var material = new THREE.MeshLambertMaterial( { side: THREE.DoubleSide, color: 0xFFFE3C } );
+    var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide, color: 0xFFFE3C } );
+    material.depthWrite = false;
     var mesh = new THREE.Mesh( new THREE.SphereGeometry( 10, 20, 10 ), material );
     mesh.position.set( 0, 0, 0 );
     scene.add( mesh );
@@ -173,19 +174,32 @@ function draw_scene(){
     scene.add(plane);
 
 
-    marker = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshLambertMaterial({ color: 0xff0000 }));
+    marker = new THREE.Mesh(new THREE.SphereGeometry(0.1), marker_material);
+    var marker_material= new THREE.MeshLambertMaterial({ color: 0xff0000, transparent: true, opacity: 1 });
+    marker_material.depthWrite = false;
     scene.add(marker);
 
 
     var text = document.createElement( 'div' );
     text.className = 'pop_up';
     text.textContent = "asdasdasd";
-    var label = new THREE.CSS2DObject( text );
-    label.position.set( 10, 10, 0 );
+    label = new THREE.CSS2DObject( text );
+    label.position.set( 10, 20, 0 );
     scene.add( label );
 
+    draw_line();
 
-    
+}
+
+function draw_line(){
+    var line_material1 = new THREE.LineBasicMaterial({ color: 0xff0000, opacity: 1.0});
+    line_material1.depthWrite = false;
+    var geometry1 = new THREE.Geometry();
+    geometry1.vertices.push(new THREE.Vector3(marker.position.x, marker.position.y, marker.position.z));
+    geometry1.vertices.push(new THREE.Vector3(label.position.x, label.position.y, label.position.z));
+    var line1 = new THREE.Line(geometry1, line_material1);
+    scene.add(line1);
+
 }
 
 function meshClick(event){
@@ -219,6 +233,10 @@ function meshClick(event){
         marker.position.x = intersects[0].point.x;
         marker.position.y = intersects[0].point.y;
         marker.position.z = intersects[0].point.z;
+
+        draw_line();
     }
+
+
 }
 

@@ -11,6 +11,7 @@ var spdx = 200, spdy = 200;
 var mouseX = 0, mouseY = 0;
 var canvasHeight, canvasWidth;
 var projector, raycaster, directionVector;
+//var line_pos={x1:0, y1:0, z1:0, x2:0, y2:0, z2:0};
 
 /*
 var clickInfo = {
@@ -19,7 +20,7 @@ var clickInfo = {
     userHasClicked: false
 };
 */
-var marker, label;
+var marker, label, line1;
 var clock = new THREE.Clock();
 $(document).ready(function () {
     $(window).resize(function () {
@@ -146,7 +147,9 @@ function render(delta){
 
 function draw_scene(){
     scene = new THREE.Scene();
-
+    scene.children.forEach(function(object){
+        scene.remove(object);
+    });
     scene.add(camera);
 
     var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide, color: 0xFFFE3C } );
@@ -195,9 +198,23 @@ function draw_line(){
     var line_material1 = new THREE.LineBasicMaterial({ color: 0xff0000, opacity: 1.0});
     line_material1.depthWrite = false;
     var geometry1 = new THREE.Geometry();
-    geometry1.vertices.push(new THREE.Vector3(marker.position.x, marker.position.y, marker.position.z));
-    geometry1.vertices.push(new THREE.Vector3(label.position.x, label.position.y, label.position.z));
-    var line1 = new THREE.Line(geometry1, line_material1);
+/*
+    line_pos.x1=marker.position.x;
+    line_pos.y1=marker.position.y;
+    line_pos.z1=marker.position.z;
+
+    line_pos.x2=label.position.x;
+    line_pos.y2=label.position.y;
+    line_pos.z2=label.position.z;
+*/
+
+     geometry1.vertices.push(new THREE.Vector3(marker.position.x, marker.position.y, marker.position.z));
+     geometry1.vertices.push(new THREE.Vector3(label.position.x, label.position.y, label.position.z));
+
+/*    geometry1.vertices.push(new THREE.Vector3(line_pos.x1, line_pos.y1, line_pos.z1));
+    geometry1.vertices.push(new THREE.Vector3(line_pos.x2, line_pos.y2, line_pos.z2));*/
+    line1 = new THREE.Line(geometry1, line_material1);
+   // line1.name="line1";
     scene.add(line1);
 
 }
@@ -234,7 +251,10 @@ function meshClick(event){
         marker.position.y = intersects[0].point.y;
         marker.position.z = intersects[0].point.z;
 
+        scene.remove( line1 );
+
         draw_line();
+       // draw_scene();
     }
 
 

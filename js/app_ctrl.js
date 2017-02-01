@@ -59,6 +59,7 @@ app.controller("app", function ($scope) {
 
         init();
         animate();
+        $scope.update_values();
     };
 
     $scope.update_values = function () {

@@ -9,6 +9,17 @@ var distance_param = 0.37;
 
 var spdx = 200, spdy = 200;
 var mouseX = 0, mouseY = 0;
+var canvasHeight, canvasWidth;
+var projector, raycaster, directionVector;
+
+/*
+var clickInfo = {
+    x: 0,
+    y: 0,
+    userHasClicked: false
+};
+*/
+
 
 $(document).ready(function () {
     $(window).resize(function () {
@@ -17,11 +28,33 @@ $(document).ready(function () {
 });
 
 function init() {
-    var canvasHeight= $("#drawcanvas").height();
-    var canvasWidth=  $("#drawcanvas").width();
+    canvasHeight= $("#drawcanvas").height();
+    canvasWidth=  $("#drawcanvas").width();
 
     var drawcanvas= document.getElementById('drawcanvas');
     canvas = document.createElement('canvas');
+
+   // var ray = new THREE.ReusableRay();
+    raycaster = new THREE.Raycaster();
+    projector = new THREE.Projector();
+    directionVector = new THREE.Vector3();
+
+
+
+    //drawcanvas.addEventListener('click', function(event){meshClick()});
+    //drawcanvas.addEventListener('click', function (event) {meshClick(event)}, false);
+
+    drawcanvas.addEventListener('click', function (event) {
+        // The user has clicked; let's note this event
+        // and the click's coordinates so that we can
+        // react to it in the render loop
+        // clickInfo.userHasClicked = true;
+        // clickInfo.x = evt.clientX;
+        // clickInfo.y = evt.clientY;
+        meshClick(event);
+    }, false);
+
+
 
     if (Detector.webgl){
         renderer = new THREE.WebGLRenderer();
@@ -43,10 +76,11 @@ function init() {
 
 
 
-    camera = new THREE.PerspectiveCamera(45, (canvasWidth / 5) / (canvasHeight / 5), 1, 15000);
-    camera.position.x = 1600;
-    camera.position.y = 1600/ distance_param;
-    camera.position.z = 1600;
+    //camera = new THREE.PerspectiveCamera(45, (canvasWidth / 5) / (canvasHeight / 5), 1, 15000);
+    camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 1, 15000);
+     camera.position.x = 0;
+     camera.position.y = 1500/ distance_param;
+     camera.position.z = -1600;
 
     renderer.shadowMapEnabled = true;
     renderer.shadowMapSoft = false;
@@ -104,13 +138,25 @@ function draw_scene(){
     scene = new THREE.Scene();
 
     var material = new THREE.MeshLambertMaterial( { side: THREE.DoubleSide } );
-    var mesh = new THREE.Mesh( new THREE.SphereGeometry( 750, 20, 10 ), material );
-    mesh.position.set( 0, 0, 0 );
+    var mesh = new THREE.Mesh( new THREE.SphereGeometry( 700, 20, 10 ), material );
+    mesh.position.set( 0, 0, -700 );
     scene.add( mesh );
+  //  mesh.addEventListener( 'click',function(){meshClick()} , false );
+
+
 
     var pointLight2 = new THREE.PointLight(0xffffff);
     pointLight2.position.set(3000, 1500, 300);
     scene.add(pointLight2);
+
+
+
+    var plane = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000, 10, 10), new THREE.MeshBasicMaterial({ color: 0x808080, wireframe: true }));
+   // plane.rotation.x = -Math.PI / 2;
+    plane.position.set( 0, 0, 0 );
+    plane.name = 'Ground';
+    scene.add(plane);
+
 
 
     var text = document.createElement( 'div' );
@@ -120,3 +166,29 @@ function draw_scene(){
     label.position.set( 1000, 0, 1000 );
     scene.add( label );
 }
+
+function meshClick(event){
+   console.log("event",event);
+   //
+   //  var vector = new THREE.Vector3(
+   //      (event.clientX / canvasWidth) * 2 - 1,
+   //      -(event.clientY / canvasHeight) * 2 + 1, 0.5);
+   //
+   // // var rayCaster = projector.vector.unproject(vector, camera);
+   //  var rayCaster = vector.unproject(camera);
+   //  console.log("rayCaster",rayCaster);
+   //
+   //  var intersectedObjects = rayCaster.intersectObjects(scene.children, true);
+   //  console.log("intersectedObjects", intersectedObjects);
+
+    var x = ( event.clientX / canvasWidth ) * 2 - 1;
+    var y = -( event.clientY / canvasHeight ) * 2 + 1;
+    directionVector.set(x, y, 1);
+    projector.unprojectVector(directionVector, camera);
+    directionVector.sub(camera.position);
+    directionVector.normalize();
+    raycaster.set(camera.position, directionVector);
+    var intersects = raycaster.intersectObjects(scene.children, true);
+    console.log("intersects",intersects);
+}
+

@@ -152,7 +152,7 @@ function draw_scene(){
     });
     scene.add(camera);
 
-    var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide, color: 0xFFFE3C } );
+    var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide, color: "#FFFE3C" } );
     material.depthWrite = false;
     var mesh = new THREE.Mesh( new THREE.SphereGeometry( 10, 20, 10 ), material );
     mesh.position.set( 0, 0, 0 );

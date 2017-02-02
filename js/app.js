@@ -11,51 +11,31 @@ var spdx = 200, spdy = 200;
 var mouseX = 0, mouseY = 0;
 var canvasHeight, canvasWidth;
 var projector, raycaster, directionVector;
-//var line_pos={x1:0, y1:0, z1:0, x2:0, y2:0, z2:0};
 
-/*
- var clickInfo = {
- x: 0,
- y: 0,
- userHasClicked: false
- };
- */
 var sphere, marker, label, line1;
-//var clock = new THREE.Clock();
-$(document).ready(function () {
+
+/*$(document).ready(function () {
     $(window).resize(function () {
         init();
     });
-});
+});*/
 
 function init() {
     canvasHeight = $("#drawcanvas").height();
     canvasWidth = $("#drawcanvas").width();
 
     var drawcanvas = document.getElementById('drawcanvas');
+
     canvas = document.createElement('canvas');
 
-    // var ray = new THREE.ReusableRay();
+
+
     raycaster = new THREE.Raycaster();
     projector = new THREE.Projector();
     directionVector = new THREE.Vector3();
 
-
-    //drawcanvas.addEventListener('click', function(event){meshClick()});
-    //drawcanvas.addEventListener('click', function (event) {meshClick(event)}, false);
-
-    drawcanvas.addEventListener('click', function (event) {
-        // The user has clicked; let's note this event
-        // and the click's coordinates so that we can
-        // react to it in the render loop
-        // clickInfo.userHasClicked = true;
-        // clickInfo.x = evt.clientX;
-        // clickInfo.y = evt.clientY;
-        meshClick(event);
-    }, false);
-
+    drawcanvas.addEventListener('click', function (event) {meshClick(event)}, false);
     drawcanvas.removeEventListener('mousewheel', getmousewheel, false);
-
 
     if (Detector.webgl) {
         renderer = new THREE.WebGLRenderer({antialias: false, preserveDrawingBuffer: true});
@@ -66,6 +46,9 @@ function init() {
     renderer.setClearColor(0xeef4ff);
     renderer.setSize(canvasWidth, canvasHeight);
     renderer.sortObjects = false;
+
+
+
 
 
     labelRenderer = new THREE.CSS2DRenderer();
@@ -79,16 +62,14 @@ function init() {
     //camera = new THREE.PerspectiveCamera(45, (canvasWidth / 5) / (canvasHeight / 5), 1, 15000);
     camera = new THREE.PerspectiveCamera(25, canvasWidth / canvasHeight);
     camera.position.x = 0;
-    camera.position.y = 20 / distance_param;
-    // camera.position.y = 20;
-    camera.position.z = 1600;
+    camera.position.y = 40 / distance_param;
+    camera.position.z = 400;
 
     renderer.shadowMapEnabled = true;
     renderer.shadowMapSoft = false;
     renderer.shadowCameraNear = 3;
     renderer.shadowCameraFar = camera.far;
     renderer.shadowCameraFov = 50;
-
 
     setControls();
     draw_scene();
@@ -110,15 +91,6 @@ function setControls() {
     controls.dynamicDampingFactor = 0.3;
     controls.keys = [65, 83, 68];
 
-    /*  controls = new THREE.FirstPersonControls(camera);
-     controls.constrainVertical = true;
-     controls.movementSpeed = 60;
-     controls.lookSpeed = 0.05;
-     */
-}
-
-function onDocumentMouseDown(event) {
-
 }
 
 function getmousewheel() {
@@ -135,33 +107,24 @@ function getmousewheel() {
 }
 
 function animate() {
-    // var delta = clock.getDelta();
     requestAnimationFrame(animate);
     deltax = spdx - mouseX;
     deltay = spdy - mouseY;
     spdx = (mouseX);
     spdy = (mouseY);
-    //  $scope.meshBg.quaternion.copy($scope.camera.quaternion);
     render();
     controls.update();
 }
 
 function render() {
-    // controls.update(delta);
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);
-    // camera.position.y = 20;
 }
 
 function draw_scene() {
     scene = new THREE.Scene();
-    scene.children.forEach(function (object) {
-        scene.remove(object);
-    });
-    scene.add(camera);
 
     if (window.scene_params != undefined) {
-        console.log("window.scene_params", window.scene_params);
         var pointLight2 = new THREE.PointLight(0xffffff);
         pointLight2.position.set(1, 1, 0.5);
         scene.add(pointLight2);
@@ -175,9 +138,7 @@ function draw_scene() {
             wireframe: true
         }));
         plane.rotation.x = -Math.PI / 2;
-        plane.name = 'Ground';
         scene.add(plane);
-
 
         var material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide, color: "#FFFE3C"});
         //material.depthWrite = false;
@@ -195,21 +156,18 @@ function draw_scene() {
 
     }
 
-
-    //  mesh.addEventListener( 'click',function(){meshClick()} , false );
-
-
-
-
 }
 
-/*function draw_line() {
+function redraw_scene(){
+   /* scene.children.forEach(function (object) {
+        scene.remove(object);
+    });*/
 
-
-}*/
+    $( ".pop_up" ).remove();
+    draw_scene();
+}
 
 function meshClick(event) {
-    //console.log("event", event);
     var x = ( event.offsetX / canvasWidth ) * 2 - 1;
     var y = -( event.offsetY / canvasHeight ) * 2 + 1;
     directionVector.set(x, y, 1);
@@ -217,18 +175,16 @@ function meshClick(event) {
     directionVector.sub(camera.position);
     directionVector.normalize();
     raycaster.set(camera.position, directionVector);
-    //var intersects = raycaster.intersectObjects(scene.children, true);
-    var arr=[sphere];
-    var intersects = raycaster.intersectObjects(arr, true);
-   // console.log("intersects", intersects);
+    var intersects = raycaster.intersectObjects([sphere], true);
+
+    scene.remove(line1);
+    scene.remove(label);
+    $( ".pop_up" ).remove();
 
     if (intersects.length) {
         marker.position.x = intersects[0].point.x;
         marker.position.y = intersects[0].point.y;
         marker.position.z = intersects[0].point.z;
-
-        scene.remove(line1);
-        scene.remove(label);
 
         text = document.createElement('div');
         text.className = 'pop_up';
@@ -236,21 +192,16 @@ function meshClick(event) {
         label = new THREE.CSS2DObject(text);
 
         var h=window.scene_params.sphere.radius*3;
-        label.position.set(marker.position.x, marker.position.y+h, marker.position.z);
+        label.position.set(marker.position.x+h , marker.position.y+h, marker.position.z);
         scene.add(label);
 
-
         var line_material1 = new THREE.LineBasicMaterial({color: 0xff0000, opacity: 1.0});
-       // line_material1.depthWrite = false;
         var geometry1 = new THREE.Geometry();
         geometry1.vertices.push(new THREE.Vector3(marker.position.x, marker.position.y, marker.position.z));
         geometry1.vertices.push(new THREE.Vector3(label.position.x, label.position.y, label.position.z));
         line1 = new THREE.Line(geometry1, line_material1);
         scene.add(line1);
 
-    }else{
-        scene.remove(line1);
-        scene.remove(label);
     }
 
 

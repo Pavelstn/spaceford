@@ -37,7 +37,6 @@ app.directive('ngDebounce', function ($timeout) {
 
 
 app.controller("app", function ($scope) {
-
     $scope.scene_params = {
         sphere: {
             radius: 10,
@@ -55,8 +54,6 @@ app.controller("app", function ($scope) {
     };
 
     $scope.init = function () {
-        console.log("dfsdfsdfsd");
-
         init();
         animate();
         $scope.update_values();
@@ -65,7 +62,7 @@ app.controller("app", function ($scope) {
     $scope.update_values = function () {
 
         window.scene_params = $scope.scene_params;
-        draw_scene();
+        redraw_scene();
     };
 
 });
